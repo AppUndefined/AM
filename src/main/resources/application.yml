@@ -1,0 +1,157 @@
+spring:
+  profiles:
+    active: am
+  mvc:
+    static-path-pattern: /**
+    view:
+      suffix: .html
+      prefix: /
+  resources:
+    static-locations: classpath:/META-INF/resources/
+---    
+spring:
+  profiles: am
+  cache:
+    type: redis
+  application:
+    name: bjupm
+  datasource:
+    url: jdbc:mysql://192.168.1.15:3306/am?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC&autoReconnect=true
+    username: bjuser
+    password: bj123456
+    name: upm
+    hikari:
+      #        一个连接idle状态的最大时长（毫秒），超时则被释放（retired），缺省:10分钟
+      idle-timeout: 600000
+      #          连接池中允许的最大连接数。缺省值：10；推荐的公式：((core_count * 2) + effective_spindle_count)
+      maximum-pool-size: 60
+      minimum-idle: 10
+      connection-test-query: SELECT 1
+      #          等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException， 缺省:30秒
+      connection-timeout: 30000
+      #          一个连接的生命时长（毫秒），超时而且没被使用则被释放（retired），缺省:30分钟，建议设置比数据库超时时长少30秒，参考MySQL wait_timeout参数（show variables like '%timeout%';）
+      max-lifetime: 1800000
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+#        ejb:
+#           interceptor: com.bjblackhole.commons.intercept.JpaInter
+
+  redis:
+    host: 192.168.1.8
+    port: 6379
+    password: bj123456
+    # 连接超时时间（毫秒）
+    timeout: 10000ms
+    jedis:
+      pool:
+        # 连接池最大连接数（使用负值表示没有限制）
+        max-active: 8
+        #连接池最大空闲连接数，负数表示不限制
+        max-idle: 8
+        #连接池最小空闲连接数
+        min-idle: 0
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1ms
+  pool:
+    max-idle: 20
+    min-idle: 5
+    max-active: 20
+    max-wait: 2
+server:
+  port: 9912
+filters:
+# 熔断降级配置
+#- name: Hystrix
+#  args:
+#    name : default
+#    fallbackUri: 'forward:/defaultfallback'
+## hystrix 信号量隔离，3秒后自动超时
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: 30000
+  shareSecurityContext: true
+ribbon:
+  NFLoadBalancerRuleClassName:
+
+  eureka:
+    enabled: true
+  ReadTimeout: 120000
+  ConnectTimeout: 120000
+  MaxAutoRetries: 0
+  MaxAutoRetriesNextServer: 1
+  OkToRetryOnAllOperations: false
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+
+    status-page-url: http://${spring.cloud.client.ip-address}:${server.port}
+    # 该配置指示eureka客户端需要向eureka服务器发送心跳的频率  (Spring Cloud默认该配置是 30s)
+    lease-renewal-interval-in-seconds: 5
+    #eureka服务器在接受到实力的最后一次发出的心跳后，需要等待多久才可以将此实力删除
+    lease-expiration-duration-in-seconds: 10
+  client:
+    #表示eureka client间隔多久去拉取服务器注册信息,默认为30秒
+    registry-fetch-interval-seconds: 30
+    # 将自己注册到Eureka Server
+    register-with-eureka: true
+    # 从Eureka Server 获取注册信息
+    fetch-registry: true
+    service-url:
+      defaultZone: http://192.168.1.5:9900/eureka/
+# 必须配置
+feign:
+  httpclient:
+    enabled: true
+  okhttp:
+    enabled: true
+
+swagger:
+  basepackage: com.bjblackhole
+  service:
+    name: upm
+    description: 后端服务
+bjenginev1:
+  host: "http://192.168.1.103:8080/project/addProject"
+path:
+  licensePath: "d:/license/license.txt"
+united:
+  weiXinUrl: "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wx165ced9bd5976de5&grant_type=authorization_code&scope=snsapi_login&secret=67e919ae867366d8c3b98df2118a998c"
+  alipayAppId: "2019032263670036"
+  alipayPublickey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsGrdQoFfZvqfNARqHdBh3eaR9Ht5A/RtSfe3HRvIQxAx6w5tulpjTsEkMaV7Gc8c4zZwxa3CnR/f1W5UarcVggbBC1Duj6hA51XWgYAR60sYBcc70L0UCXJcHQYHk11X6BcBOsdOdYAgFCHKrkpoLliSuGQEdzqyRu1axswqwSJgLuC2n87Y4FPlMy/1/tx90eZEFaahYP2xrj3jqqoaP/gwZwNJMzCOUxxu9zpPW2meiY2oRm9zvAHbewG0BBxvcaouzpCsqJZJyEk+H6BUal3KkUUtyAebPr3KIXkWtbHikSpUBxGkzJD2sWSurX5JMDHXqP/fbdy++oBZ4wHC3wIDAQAB"
+  alipayPrivateKey: "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCtr5U9K8YfsuM4
+                     h3heYZnYZUbyvpT1I/s92aXRYHfQMRPYAUqVsFiThsWO4shFo6hbRKLcIEJspX8f
+                     LtY7UqNBVCQRhiphAhilriZFk3u1MciCrmKCN1qTxY/NhMqbY3byLBPMxODu4L76
+                     AyGSsrBvXRUoiNays5AHUwFpuwqvgTVdBT8fqwPGEJPtSIzIbQe5jqdeURYNZOp8
+                     YhGoBFHTj87vIsM7QAQrzzAlSEgzYNMve6Z0p73ProjJE7TPcHFVr0zfpxBaJhlp
+                     bBOc40C11jU8WfZCqTxqRtAZJyYHw3Yet/usDTHuIzZr5Lr+XyJfeC0NeG2dplhq
+                     VrwvjiJBAgMBAAECggEAEndwrqhQ0F38uq3splxKNy/Nc1HAFLBWriTN9I0FMCWH
+                     rpe0jmXJhSX3K1IBaSYVaF7L0gu8BEE0WuRn8ra+lNuVWiehqd7HMBZsC0m7BXDd
+                     mMdhweaQwtVmjLtpr0vMAcOd90+Xes56f6qFj0tgZvbGoSCrcySUU7MHm24/nJk7
+                     TS/8G4H94zTUuQszYOpbmaNcfh3P0EQ5G4C1Mc+DWb4Nj27VQLcKKdc7JQymoRjY
+                     0G96qQK9X0Q46cRtg0M3xRRAZ7JlYfEO3UOQyznWo/4N9P3qzobqGz2LkUZuma0a
+                     PSGNqJJw4hbxdFrnYBQUOgrSrSdwzNd97ZQMv1GmYQKBgQDlBB1Maeh5DgBUVvYY
+                     o+r0OBJW79pB70rCqkKVz4bJSQpBzkbHrvwZhUtjle2uXkwe5U9ZBx4PJwyV6dF2
+                     zABmOj67l2mZ8VDlvRTkWp5acUIvgonAt8G8UqFgcGIoVrQ8MNpDv8ZHtuyx7tky
+                     sQF8p2WM8DIluKzEfqpA6gncmwKBgQDCJoadWKigRxmoAU9aIHn5fpWo2Hubdmwb
+                     fIbqjyHvqL5NcO/L80WTCAscWPy09IyNJuR5NAan0zEUKIqSYOA1IEnc95q9q+cZ
+                     3s3/ZSX4RsHNLqYvy4CbWOh+GrwtmIdLMCbNAbqp+cqFP8AnM1/XKnDMfxIKA9NE
+                     YJRLiJaUUwKBgQCBcQvmTs4Y7fL9uJEsaCm6k566CKOCNPA6iuVLq5pxVpk3jJGw
+                     95SCEDcGOI24yo+XvuBUX5N72QRiD2BXFwL6xN0ERpZnbl/dGjwevaFXWUChfdTC
+                     WppkCQgxbBPu3OLOSoZzWIeHrTqnb2rQHf/LJwpc2L5fV7w+66DrQ90DFQKBgAXD
+                     0xd0/HzV36Mnds28TSLlaVg8JV92YrtmNTNd0KonHo96HQS3UoeNI5dR5R8Sa+H9
+                     F6eprdDp6nkowwSZr86kCM1w5L1hD1mrTf6ZaEk5AKQxEGo25ri2KSEldhT8hHft
+                     FBneRUaqziKqw+/mDKB8+CB6XXTCrFFJdN3RTndVAoGAYetnIGkMihjUV8415hlp
+                     J3r50R36O+0qmyCzIR3xeUexQB4OwTV6ygjHODDq9Na1Rno08LyZSgGwjjKg3DEw
+                     id/CHbEjJVZPRIgpJXMOQ4TDjwlHxChIKO35WnmSheqWVSPj4Vqqpxv7aysylQX1
+                     IkdL6GzCM1+HYoXqDZOTdDQ="
